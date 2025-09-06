@@ -6,5 +6,7 @@ build
 
 gradle-cache/
 
+venv
+
 
 

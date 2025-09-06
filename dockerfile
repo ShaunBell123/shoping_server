@@ -1,4 +1,4 @@
-FROM eclipse-temurin:24-jdk
+FROM eclipse-temurin:17-jdk
 
 ENV GRADLE_HOME=/opt/gradle
 ENV GRADLE_VERSION=9.0.0
