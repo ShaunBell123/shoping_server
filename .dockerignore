@@ -1,0 +1,20 @@
+# Gradle
+.gradle
+build/
+
+# Project-specific output
+out/
+target/
+
+# IDE/editor
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
