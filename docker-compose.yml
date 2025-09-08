@@ -1,15 +1,15 @@
-version: "3.9"
-
 services:
   gradle:
     build: .
     container_name: gradle-builder
-    user: gradle
+    user: root
     volumes:
       - ./app:/home/gradle/project
       - gradle-cache:/home/gradle/.gradle
     working_dir: /home/gradle/project
-    command: gradle build
+    ports:
+      - "8080:8080"
+
 
 volumes:
   gradle-cache:
