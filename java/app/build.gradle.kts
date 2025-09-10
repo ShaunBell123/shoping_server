@@ -1,7 +1,6 @@
 plugins {
     id("java")
     id("application")
-    // id("org.graalvm.python") version "24.2.2"
     id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -13,9 +12,6 @@ repositories {
 dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
-
-    // GraalVM SDK
-    // implementation("org.graalvm.sdk:graal-sdk:24.2.2")
 
     // Guava
     implementation("com.google.guava:guava:32.1.1-jre")
@@ -31,18 +27,9 @@ java {
     }
 }
 
-application {
-    mainClass.set("com.gradle_java_docker.shop.App")
+springBoot {
+    mainClass.set("com.java_server.shop.App")
 }
-
-
-// GraalPy plugin configuration
-// graalPy {
-//     graalVmHome = file(System.getenv("JAVA_HOME"))
-//     packages = setOf("beautifulsoup4==4.12.3", "selenium==4.35.0")
-//     externalDirectory = file("${project.projectDir}/src/main/python_resources")
-// }
-
 
 // JUnit test configuration
 tasks.named<Test>("test") {

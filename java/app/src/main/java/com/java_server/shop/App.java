@@ -1,4 +1,4 @@
-package com.gradle_java_docker.shop;
+package com.java_server.shop;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,5 +10,4 @@ public class App {
         System.out.println("Shopping Java Server is running!");
         SpringApplication.run(App.class, args);
     }
-
 }

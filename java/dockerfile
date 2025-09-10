@@ -24,14 +24,16 @@ RUN wget --no-verbose -O gradle.zip "https://services.gradle.org/distributions/g
     && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
     && ln -s "${GRADLE_HOME}/bin/gradle" /usr/bin/gradle
 
-
 ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 USER gradle
+
 WORKDIR /home/gradle/project
-COPY --chown=gradle:gradle . .
-RUN gradle bootJar --no-daemon
+COPY --chown=gradle:gradle ./app/ ./
+RUN gradle clean bootJar --no-daemon
 
 EXPOSE 8080
-CMD ["java", "-jar", "build/libs/app.jar"]
+
+CMD ["java", "-jar", "/home/gradle/project/build/libs/app.jar"]
+
