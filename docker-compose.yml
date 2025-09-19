@@ -4,25 +4,20 @@ services:
       context: ./java
       dockerfile: Dockerfile
     container_name: java-app
-    expose:
-      - "8080"
     ports:
-      - "8080:8080"
+      - "${SPRING_PORT}:3000"
     volumes:
       - ./java/app:/home/gradle/project
-      - gradle-cache:/home/gradle/.gradle
+    environment:
+      - OKTA_DOMAIN=${OKTA_DOMAIN}
+      - OKTA_CLIENT_ID=${OKTA_CLIENT_ID}
+      - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
+      - SPRING_PORT=${SPRING_PORT}
 
   python-app:
     build:
       context: ./python
       dockerfile: Dockerfile
     container_name: python-app
-    expose:
-      - "8000"
-    ports:
-      - "5001:8000"
     volumes:
       - ./python:/app
-
-volumes:
-  gradle-cache:

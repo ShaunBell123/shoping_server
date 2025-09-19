@@ -11,7 +11,11 @@ repositories {
 
 dependencies {
     // Spring Boot
+    implementation("com.okta.spring:okta-spring-boot-starter:3.0.5")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
 
     // Guava
     implementation("com.google.guava:guava:32.1.1-jre")

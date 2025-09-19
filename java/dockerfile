@@ -1,39 +1,52 @@
-FROM eclipse-temurin:17-jdk
+# FROM eclipse-temurin:17-jdk
 
-ENV GRADLE_HOME=/opt/gradle
-ENV GRADLE_VERSION=9.0.0
-ARG GRADLE_DOWNLOAD_SHA256=8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b
+# ENV GRADLE_HOME=/opt/gradle
+# ENV GRADLE_VERSION=9.0.0
+# ARG GRADLE_DOWNLOAD_SHA256=8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b
 
-RUN groupadd gradle \
-    && useradd -m -g gradle gradle \
-    && mkdir -p /home/gradle/.gradle \
-    && chown -R gradle:gradle /home/gradle \
-    && ln -s /home/gradle/.gradle /root/.gradle
+# RUN groupadd gradle \
+#     && useradd -m -g gradle gradle \
+#     && mkdir -p /home/gradle/.gradle \
+#     && chown -R gradle:gradle /home/gradle \
+#     && ln -s /home/gradle/.gradle /root/.gradle
 
-WORKDIR /home/gradle
-VOLUME /home/gradle/.gradle
+# WORKDIR /home/gradle
+# VOLUME /home/gradle/.gradle
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl unzip git wget \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     curl unzip git wget \
+#     && rm -rf /var/lib/apt/lists/*
 
-RUN wget --no-verbose -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
-    && echo "${GRADLE_DOWNLOAD_SHA256} *gradle.zip" | sha256sum -c - \
-    && unzip gradle.zip \
-    && rm gradle.zip \
-    && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
-    && ln -s "${GRADLE_HOME}/bin/gradle" /usr/bin/gradle
+# RUN wget --no-verbose -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+#     && echo "${GRADLE_DOWNLOAD_SHA256} *gradle.zip" | sha256sum -c - \
+#     && unzip gradle.zip \
+#     && rm gradle.zip \
+#     && mv "gradle-${GRADLE_VERSION}" "${GRADLE_HOME}/" \
+#     && ln -s "${GRADLE_HOME}/bin/gradle" /usr/bin/gradle
 
-ENV JAVA_HOME=/opt/java/openjdk
-ENV PATH="$JAVA_HOME/bin:$PATH"
+# ENV JAVA_HOME=/opt/java/openjdk
+# ENV PATH="$JAVA_HOME/bin:$PATH"
 
-USER gradle
+# USER gradle
 
+# WORKDIR /home/gradle/project
+# COPY --chown=gradle:gradle ./app/ ./
+# RUN gradle clean bootJar --no-daemon
+
+# EXPOSE 8080
+
+# CMD ["java", "-jar", "/home/gradle/project/build/libs/app.jar"]
+
+# Build stage
+# Build stage
+FROM gradle:9.0.0-jdk17 AS build
 WORKDIR /home/gradle/project
-COPY --chown=gradle:gradle ./app/ ./
+COPY . ./
 RUN gradle clean bootJar --no-daemon
 
-EXPOSE 8080
-
-CMD ["java", "-jar", "/home/gradle/project/build/libs/app.jar"]
-
+# Run stage
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+# Adjust path to match Gradle output
+COPY --from=build /home/gradle/project/app/build/libs/app.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -8,5 +8,9 @@ gradle-cache/
 
 venv
 
+.env
+
+
+
 
 

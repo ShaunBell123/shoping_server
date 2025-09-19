@@ -1,0 +1,17 @@
+server:
+  port: ${SPRING_PORT:3000}
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.java_server.shop: TRACE
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-t2yejm0ncy7yzl4t.us.auth0.com/
+          audience: https://myapi.local
+
