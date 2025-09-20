@@ -1,4 +1,4 @@
-java, gradle, sprint boot, pthon, fastapi, git, docker
+java, gradle, sprint boot, pthon, fastapi, git, docker, auth0.
 ## Have
 ### Java Container
 
