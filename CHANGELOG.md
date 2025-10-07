@@ -3,6 +3,7 @@
 ## [1.0.1] - 2025-10-06
 ### Added
 - Redis caching: when the process endpoint is triggered, the app now checks the cache before scraping new data.
+- Auth0 integration: added user authentication to the Java scrape endpoint.
 ### Changed
 - Updated some data structures for improved performance and clarity. in the main file
 - moved some file around like asda_scraper and trsco_scraper into a new file called scrap. 
