@@ -3,3 +3,5 @@ uvicorn[standard]==0.35.0
 beautifulsoup4
 selenium
 requests
+redis==6.4.0
+pandas

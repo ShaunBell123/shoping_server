@@ -14,7 +14,23 @@ class Scraper:
         self.shoping_list = shoping_list
 
     def scrape(self):
-        return f"Scraping {self.site_name} from a generic shop."
+
+        results = []
+        
+        for product in self.shoping_list:
+
+            url = self.get_url(product["requested"])
+
+            scraped_candidates = self.scrape_item(url)
+
+            best_match = self.closest_product(product["requested"], scraped_candidates)
+
+            results.append({
+                "requested": product["requested"],
+                "product": best_match
+            })
+
+        return {self.site_name: results}
     
     def set_up_driver(self):
         user_agent = self.user_agent()
@@ -24,8 +40,10 @@ class Scraper:
         options.add_argument("--headless=new")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--incognito")
         options.binary_location = "/usr/bin/chromium"
-        service = Service("/usr/bin/chromedriver")      
+
+        service = Service("/usr/bin/chromedriver")
         driver = webdriver.Chrome(service=service, options=options)
 
         return driver
@@ -42,10 +60,9 @@ class Scraper:
         highest_ratio = 0
 
         for product in products:
-            name = product["name"]
-            if not name:
-                continue
+            name = product.get("name")
             ratio = SequenceMatcher(None, item.lower(), name.lower()).ratio()
+
             if ratio > highest_ratio:
                 highest_ratio = ratio
                 best_match = product

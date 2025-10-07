@@ -1,3 +1,4 @@
+
 services:
   java-app:
     build:
@@ -9,9 +10,13 @@ services:
     volumes:
       - ./java/app:/home/gradle/project
     environment:
-      - OKTA_DOMAIN=${OKTA_DOMAIN}
-      - OKTA_CLIENT_ID=${OKTA_CLIENT_ID}
-      - OKTA_CLIENT_SECRET=${OKTA_CLIENT_SECRET}
+      - AUTH0_DOMAIN=${AUTH0_DOMAIN}
+      - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
+      - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
+      - AUTH0_REDIRECT_URI=${AUTH0_REDIRECT_URI}
+      - AUTH0_AUDIENCE=${AUTH0_AUDIENCE}
+      - AUTH0_SCOPE=${AUTH0_SCOPE}
+      - AUTH0_ISSUER_URI=${AUTH0_ISSUER_URI}
       - SPRING_PORT=${SPRING_PORT}
 
   python-app:
@@ -21,3 +26,16 @@ services:
     container_name: python-app
     volumes:
       - ./python:/app
+    ports:
+      - "5001:8000"
+
+  redis:
+    image: redis:7.4
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

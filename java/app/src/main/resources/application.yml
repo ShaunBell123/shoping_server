@@ -1,5 +1,5 @@
 server:
-  port: ${SPRING_PORT:3000}
+  port: ${SPRING_PORT:3000}  # default to 3000 if not set
 
 logging:
   level:
@@ -12,6 +12,12 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://dev-t2yejm0ncy7yzl4t.us.auth0.com/
-          audience: https://myapi.local
+          issuer-uri: ${AUTH0_ISSUER_URI}
+          audience: ${AUTH0_AUDIENCE}
 
+auth0:
+  domain: ${AUTH0_DOMAIN}
+  client-id: ${AUTH0_CLIENT_ID}
+  client-secret: ${AUTH0_CLIENT_SECRET}
+  redirect-uri: ${AUTH0_REDIRECT_URI}
+  scope: ${AUTH0_SCOPE:openid profile email scrape:read}
