@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+
+    <!-- CSRF tokens for JavaScript -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,12 +26,22 @@
         h1 {
             margin-bottom: 10px;
         }
-        a {
+        a, button {
             color: #007bff;
             text-decoration: none;
+            cursor: pointer;
         }
-        a:hover {
+        a:hover, button:hover {
             text-decoration: underline;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -36,6 +51,46 @@
         <p>Your email: <span th:text="${email}">example@email.com</span></p>
         <p><a href="/logout">Logout</a></p>
         
+        <button id="scrapeBtn">Run Scrape</button>
+        <pre id="responseOutput" style="margin-top: 15px; text-align:left;"></pre>
     </div>
+
+    <script>
+        document.getElementById("scrapeBtn").addEventListener("click", async () => {
+            const payload = {
+                "shops": [
+                    {
+                        "shop_name": "tesco",
+                        "products": [
+                            { "name": "milk" },
+                            { "name": "bread" },
+                            { "name": "eggs" }
+                        ]
+                    }
+                ]
+            };
+
+            try {
+                const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+                const response = await fetch("/scrape", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        [header]: token
+                    },
+                    body: JSON.stringify(payload),
+                    credentials: "same-origin"
+                });
+
+                const data = await response.json();  // parse JSON
+                document.getElementById("responseOutput").textContent = JSON.stringify(data, null, 2);
+
+            } catch (err) {
+                document.getElementById("responseOutput").textContent = "Error: " + err;
+            }
+        });
+    </script>
 </body>
 </html>

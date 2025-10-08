@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2] - 2025-10-10
+### Added
+- Added a few templates to test user experiences: pages for login, index (home), and dashboard.
+### changed 
+- Changed to `ScrapeController` to better align with what the Python endpoint (`process`) is expecting.
+
 ## [1.0.1] - 2025-10-06
 ### Added
 - Redis caching: when the process endpoint is triggered, the app now checks the cache before scraping new data.
