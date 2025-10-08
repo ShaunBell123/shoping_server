@@ -9,19 +9,29 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity 
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         
         http
-        .authorizeHttpRequests(auth -> auth
-            .anyRequest().authenticated()
-        )
-        .oauth2ResourceServer(oauth2 -> 
-            oauth2.jwt(jwt -> {}));
 
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/login", "/public/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            
+            .oauth2Login(oauth2 -> oauth2
+                .successHandler((request, response, authentication) -> {
+                    response.sendRedirect("/dashboard");
+                })
+            )
+            
+            .logout(logout -> logout
+                .logoutSuccessUrl("/login")
+                .permitAll()
+            );
 
         return http.build();
     }

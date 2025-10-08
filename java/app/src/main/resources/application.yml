@@ -1,23 +1,17 @@
-server:
-  port: ${SPRING_PORT:3000}  # default to 3000 if not set
-
-logging:
-  level:
-    root: ERROR
-    org.springframework.web: ERROR
-    com.java_server.shop: TRACE
-
 spring:
   security:
     oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${AUTH0_ISSUER_URI}
-          audience: ${AUTH0_AUDIENCE}
+      client:
+        registration:
+          auth0:
+            client-id: ${AUTH0_CLIENT_ID}
+            client-secret: ${AUTH0_CLIENT_SECRET}
+            scope: openid, profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Auth0
+        provider:
+          auth0:
+            issuer-uri: ${AUTH0_ISSUER_URI}
 
-auth0:
-  domain: ${AUTH0_DOMAIN}
-  client-id: ${AUTH0_CLIENT_ID}
-  client-secret: ${AUTH0_CLIENT_SECRET}
-  redirect-uri: ${AUTH0_REDIRECT_URI}
-  scope: ${AUTH0_SCOPE:openid profile email scrape:read}
+server:
+  port: ${SPRING_PORT}
