@@ -61,7 +61,7 @@ resource "aws_security_group" "private_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = { Name = "private-sg" }
@@ -88,23 +88,35 @@ resource "aws_security_group" "redis_sg" {
 }
 
 # ---------------------
+# Key Pair (auto-generated)
+# ---------------------
+resource "tls_private_key" "ec2_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "aws_key_pair" "deploy_key" {
+  key_name   = "ec2-deploy-key"
+  public_key = tls_private_key.ec2_key.public_key_openssh
+}
+
+# ---------------------
 # Redis (ElastiCache)
 # ---------------------
 resource "aws_elasticache_subnet_group" "private_cache_subnet_group" {
-  name        = "private-cache-subnet-group"
-  subnet_ids  = [aws_subnet.private_subnet.id]
-  description = "Subnet group for private Redis cache"
+  name       = "private-cache-subnet-group"
+  subnet_ids = [aws_subnet.private_subnet.id]
 }
 
 resource "aws_elasticache_cluster" "redis_cluster" {
-  cluster_id           = "private-redis-cluster"
-  engine               = "redis"
-  node_type            = "cache.t4g.micro"
-  num_cache_nodes      = 1
+  cluster_id         = "private-redis-cluster"
+  engine             = "redis"
+  node_type          = "cache.t4g.micro"
+  num_cache_nodes    = 1
   parameter_group_name = "default.redis7"
-  port                 = 6379
-  subnet_group_name    = aws_elasticache_subnet_group.private_cache_subnet_group.name
-  security_group_ids   = [aws_security_group.redis_sg.id]
+  port               = 6379
+  subnet_group_name  = aws_elasticache_subnet_group.private_cache_subnet_group.name
+  security_group_ids = [aws_security_group.redis_sg.id]
 
   tags = { Name = "private-redis" }
 }
@@ -117,7 +129,8 @@ resource "aws_instance" "app_server" {
   instance_type               = "t4g.micro"
   subnet_id                   = aws_subnet.private_subnet.id
   vpc_security_group_ids      = [aws_security_group.private_sg.id]
-  associate_public_ip_address = false
+  key_name                    = aws_key_pair.deploy_key.key_name
+  associate_public_ip_address = true
 
   # Inject Redis connection info at boot
   user_data = <<-EOF
@@ -139,7 +152,6 @@ resource "aws_api_gateway_rest_api" "shop_api" {
   }
 }
 
-# Resources (paths)
 resource "aws_api_gateway_resource" "scrape" {
   rest_api_id = aws_api_gateway_rest_api.shop_api.id
   parent_id   = aws_api_gateway_rest_api.shop_api.root_resource_id
@@ -237,16 +249,22 @@ resource "aws_vpc_endpoint" "api_vpce" {
 # Outputs
 # ---------------------
 output "redis_endpoint" {
-  description = "Redis primary endpoint address"
-  value       = aws_elasticache_cluster.redis_cluster.cache_nodes[0].address
+  value = aws_elasticache_cluster.redis_cluster.cache_nodes[0].address
 }
 
 output "ec2_id" {
-  description = "EC2 instance ID"
-  value       = aws_instance.app_server.id
+  value = aws_instance.app_server.id
 }
 
 output "api_id" {
-  description = "Private API Gateway ID"
-  value       = aws_api_gateway_rest_api.shop_api.id
+  value = aws_api_gateway_rest_api.shop_api.id
+}
+
+output "private_key_pem" {
+  value     = tls_private_key.ec2_key.private_key_pem
+  sensitive = true
+}
+
+output "ec2_public_ip" {
+  value = aws_instance.app_server.public_ip
 }

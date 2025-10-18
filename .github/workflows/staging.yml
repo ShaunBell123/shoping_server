@@ -8,11 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout your repository
+      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Configure AWS credentials (needed for Terraform)
+      # Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -32,27 +32,35 @@ jobs:
 
       # Apply Terraform configuration
       - name: Terraform Apply
+        id: apply
         run: terraform apply -auto-approve
 
-      # Get EC2 public IP from Terraform output
-      - name: Get EC2 public IP
-        id: ec2
+      # Get Terraform outputs
+      - name: Get Terraform outputs
+        id: outputs
         run: |
           echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "REDIS_HOST=$(terraform output -raw redis_endpoint)" >> $GITHUB_ENV
+          echo "PRIVATE_KEY=$(terraform output -raw private_key_pem)" >> $GITHUB_ENV
 
-      # Prepare SSH key from GitHub Secret
-      - name: Set up SSH key
+      # Write the private key to a file
+      - name: Write SSH key
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > my-key.pem
+          echo "${{ env.PRIVATE_KEY }}" > my-key.pem
           chmod 600 my-key.pem
 
-      # Copy app files to EC2 instance
+      # Copy app files to EC2
       - name: Copy files to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i my-key.pem -r . ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app
 
-      # Deploy the app using Docker Compose on the EC2 instance
+      # Write .env and deploy Docker Compose on EC2
       - name: Deploy app with Docker Compose
         run: |
-          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} \
-          "cd /home/ubuntu/app && docker-compose up --build -d"
+          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} << EOF
+            cd /home/ubuntu/app
+            echo "REDIS_HOST=${REDIS_HOST}" > .env
+            echo "REDIS_PORT=6379" >> .env
+            echo "REDIS_SSL=True" >> .env
+            docker-compose up --build -d
+          EOF
