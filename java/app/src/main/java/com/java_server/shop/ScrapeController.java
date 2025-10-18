@@ -17,8 +17,6 @@ public class ScrapeController {
     @PostMapping("/scrape")
     public ResponseEntity<String> scrape(@RequestBody Map<String, Object> requestBody) {
 
-        System.err.println("Received scrape request: " + requestBody);
-
         String url = "http://python-app:8000/process";
 
         HttpHeaders headers = new HttpHeaders();
@@ -30,11 +28,9 @@ public class ScrapeController {
         
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-        ResponseEntity<String> finalResponse = ResponseEntity
-        .status(response.getStatusCode())
+        return ResponseEntity.status(response.getStatusCode())
         .body(response.getBody());
-
-        return finalResponse;
+        
     }
 
 }

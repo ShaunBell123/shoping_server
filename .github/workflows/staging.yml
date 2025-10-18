@@ -1,0 +1,66 @@
+name: Deploy to Staging EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      # Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      # Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Apply Terraform configuration
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve
+
+      # Get Terraform outputs
+      - name: Get Terraform outputs
+        id: outputs
+        run: |
+          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "REDIS_HOST=$(terraform output -raw redis_endpoint)" >> $GITHUB_ENV
+          echo "PRIVATE_KEY=$(terraform output -raw private_key_pem)" >> $GITHUB_ENV
+
+      # Write the private key to a file
+      - name: Write SSH key
+        run: |
+          echo "${{ env.PRIVATE_KEY }}" > my-key.pem
+          chmod 600 my-key.pem
+
+      # Copy app files to EC2
+      - name: Copy files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i my-key.pem -r . ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app
+
+      # Write .env and deploy Docker Compose on EC2
+      - name: Deploy app with Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} << EOF
+            cd /home/ubuntu/app
+            echo "REDIS_HOST=${REDIS_HOST}" > .env
+            echo "REDIS_PORT=6379" >> .env
+            echo "REDIS_SSL=True" >> .env
+            docker-compose up --build -d
+          EOF

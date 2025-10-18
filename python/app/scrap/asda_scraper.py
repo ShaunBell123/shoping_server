@@ -20,7 +20,7 @@ class AsdaScraper(Scraper):
         return f"{self.base_url}{product_name.replace(' ', '%20')}"
 
     def scrape_item(self, url):
-        print(f"Scraping URL: {url}")
+
         driver = self.set_up_driver()
         driver.get(url)
 
@@ -28,7 +28,6 @@ class AsdaScraper(Scraper):
             EC.presence_of_element_located((By.CSS_SELECTOR, 'a[data-locator="txt-product-name"]'))
         )
 
-        print("Page loaded, extracting data...")
         return self.page(driver)
     
     def page(self, driver):
@@ -47,8 +46,6 @@ class AsdaScraper(Scraper):
 
             unit_tag = product.select_one('p[data-locator="txt-product-price-per-uom"]')
             unit_price = unit_tag.get_text(strip=True) if unit_tag else None
-
-            print(f"Found product - Name: {name}, Price: {price}, Unit Price: {unit_price}")
 
             if name:
                 results.append({

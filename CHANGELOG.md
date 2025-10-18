@@ -1,5 +1,11 @@
 # Changelog
 
+
+## [1.0.3] - 2025-10-18
+### Added
+- Terraform configuration files for VPC, EC2, and Redis setup.
+- GitHub Actions workflow for deploying to EC2
+
 ## [1.0.2] - 2025-10-10
 ### Added
 - Added a few templates to test user experiences: pages for login, index (home), and dashboard.
@@ -17,3 +23,4 @@
 ## [1.0.0] - idk(when the repo was made)
 ### Added
 - Initial project setup combining different repositories.
+

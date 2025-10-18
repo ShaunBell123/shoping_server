@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Dashboard</title>
 
-    <!-- CSRF tokens for JavaScript -->
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
@@ -84,7 +83,7 @@
                     credentials: "same-origin"
                 });
 
-                const data = await response.json();  // parse JSON
+                const data = await response.json();
                 document.getElementById("responseOutput").textContent = JSON.stringify(data, null, 2);
 
             } catch (err) {
