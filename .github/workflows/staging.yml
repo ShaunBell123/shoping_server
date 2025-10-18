@@ -34,16 +34,12 @@ jobs:
 
       - name: Get Terraform outputs
         id: outputs
+        working-directory: terraform
         run: |
           echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
           echo "REDIS_HOST=$(terraform output -raw redis_endpoint)" >> $GITHUB_ENV
-          echo "PRIVATE_KEY=$(terraform output -raw private_key_pem)" >> $GITHUB_ENV
-        working-directory: terraform
-
-      - name: Write SSH key
-        run: |
-          echo "${{ env.PRIVATE_KEY }}" > my-key.pem
-          chmod 600 my-key.pem
+          terraform output -raw private_key_pem > ../my-key.pem
+          chmod 600 ../my-key.pem
 
       - name: Copy files to EC2
         run: |
@@ -51,7 +47,7 @@ jobs:
 
       - name: Deploy app with Docker Compose
         run: |
-          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} << EOF
+          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
             cd /home/ubuntu/app
             echo "REDIS_HOST=${REDIS_HOST}" > .env
             echo "REDIS_PORT=6379" >> .env
