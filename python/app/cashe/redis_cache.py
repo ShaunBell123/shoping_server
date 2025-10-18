@@ -1,11 +1,17 @@
 import redis
+import os
 import json
 from collections import defaultdict
 
 class RedisCache:
 
     def __init__(self):
-        self.redis = redis.Redis(host="redis", port=6379, decode_responses=True)
+        self.redis = redis.Redis(
+            host=os.getenv('REDIS_HOST'),
+            port=int(os.getenv('REDIS_PORT')),
+            ssl=os.getenv('REDIS_SSL', 'False') == 'True',
+            decode_responses=True
+        )
 
     def check_cache(self, shops_list):
         cached_grouped = defaultdict(list)

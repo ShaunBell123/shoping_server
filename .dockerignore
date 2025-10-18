@@ -2,11 +2,32 @@
 .gradle
 build/
 
-# Project-specific output
-out/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+.venv/
+env/
+venv/
+
+# Java
+*.class
 target/
 
-# IDE/editor
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE / Editor
 .idea/
 .vscode/
 *.iml
@@ -15,8 +36,10 @@ target/
 .DS_Store
 Thumbs.db
 
+# Environment files
+.env
+
 # Git
 .git
 .gitignore
-
 

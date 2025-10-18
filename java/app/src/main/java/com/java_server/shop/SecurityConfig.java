@@ -29,7 +29,7 @@ public class SecurityConfig {
             )
             
             .logout(logout -> logout
-                .logoutSuccessUrl("/login")
+                .logoutSuccessUrl("/")
                 .permitAll()
             );
 

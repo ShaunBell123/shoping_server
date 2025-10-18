@@ -1,0 +1,58 @@
+name: Deploy to Staging EC2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout your repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Configure AWS credentials (needed for Terraform)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+
+      # Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      # Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Apply Terraform configuration
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+
+      # Get EC2 public IP from Terraform output
+      - name: Get EC2 public IP
+        id: ec2
+        run: |
+          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+
+      # Prepare SSH key from GitHub Secret
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > my-key.pem
+          chmod 600 my-key.pem
+
+      # Copy app files to EC2 instance
+      - name: Copy files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i my-key.pem -r . ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app
+
+      # Deploy the app using Docker Compose on the EC2 instance
+      - name: Deploy app with Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} \
+          "cd /home/ubuntu/app && docker-compose up --build -d"

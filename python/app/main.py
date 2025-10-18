@@ -58,7 +58,6 @@ async def process(config: ScrapeConfig):
                     final.setdefault(shop_name, []).extend(products)
 
             for shop_data in results:
-                print(f"Scraped data: {shop_data}")
                 cache.cache_data(shop_data)
 
     return final
