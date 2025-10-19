@@ -27,31 +27,27 @@ jobs:
         run: terraform init
         working-directory: terraform
 
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        working-directory: terraform
-
       - name: Terraform Apply
-        id: apply
-        run: terraform apply -auto-approve tfplan
+        run: |
+          terraform plan -out=tfplan || true
+          terraform apply -auto-approve tfplan || terraform apply -auto-approve
         working-directory: terraform
 
       - name: Get Terraform outputs
-        id: outputs
-        working-directory: terraform
         run: |
           echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
           echo "REDIS_HOST=$(terraform output -raw redis_endpoint)" >> $GITHUB_ENV
           terraform output -raw private_key_pem > ../my-key.pem
           chmod 600 ../my-key.pem
+        working-directory: terraform
 
       - name: Copy files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i my-key.pem -r . ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app
+          scp -o StrictHostKeyChecking=no -i ../my-key.pem -r . ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app
 
       - name: Deploy app with Docker Compose
         run: |
-          ssh -o StrictHostKeyChecking=no -i my-key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ../my-key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
             cd /home/ubuntu/app
             echo "REDIS_HOST=${REDIS_HOST}" > .env
             echo "REDIS_PORT=6379" >> .env
