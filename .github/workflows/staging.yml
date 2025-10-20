@@ -25,32 +25,36 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: terraform
+        working-directory: terraform/main
 
       - name: Terraform Apply
-        run: |
-          terraform plan -out=tfplan || true
-          terraform apply -auto-approve tfplan || terraform apply -auto-approve
-        working-directory: terraform
+        run: terraform apply -auto-approve
+        working-directory: terraform/main
 
       - name: Get Terraform outputs
         run: |
-          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
           echo "REDIS_HOST=$(terraform output -raw redis_endpoint)" >> $GITHUB_ENV
-          terraform output -raw private_key_pem > ../my-key.pem
-          chmod 600 ../my-key.pem
-        working-directory: terraform
+        working-directory: terraform/main
 
-      - name: Copy files to EC2
+      - name: Archive app folders
         run: |
-          scp -o StrictHostKeyChecking=no -i ../my-key.pem -r . ubuntu@${{ env.EC2_IP }}:/home/ubuntu/app
+          tar czf app.tar.gz java python docker-compose.yml
 
-      - name: Deploy app with Docker Compose
+      - name: Deploy via SSM
         run: |
-          ssh -o StrictHostKeyChecking=no -i ../my-key.pem ubuntu@${{ env.EC2_IP }} << 'EOF'
-            cd /home/ubuntu/app
-            echo "REDIS_HOST=${REDIS_HOST}" > .env
-            echo "REDIS_PORT=6379" >> .env
-            echo "REDIS_SSL=True" >> .env
-            docker-compose up --build -d
-          EOF
+          aws ssm send-command \
+            --targets "Key=instanceIds,Values=${{ env.EC2_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "mkdir -p /home/ubuntu/app",
+              "cd /home/ubuntu/app",
+              "cat > app.tar.gz << EOF",
+              "'"$(base64 app.tar.gz)"'",
+              "EOF",
+              "tar xzf app.tar.gz",
+              "echo REDIS_HOST=${REDIS_HOST} > .env",
+              "echo REDIS_PORT=6379 >> .env",
+              "echo REDIS_SSL=True >> .env",
+              "docker-compose up --build -d"
+            ]'
