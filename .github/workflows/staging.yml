@@ -43,18 +43,17 @@ jobs:
 
       - name: Deploy via SSM
         run: |
+          BASE64_ARCHIVE=$(base64 app.tar.gz | tr -d '\n')
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${{ env.EC2_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "mkdir -p /home/ubuntu/app",
-              "cd /home/ubuntu/app",
-              "cat > app.tar.gz << EOF",
-              "'"$(base64 app.tar.gz)"'",
-              "EOF",
-              "tar xzf app.tar.gz",
-              "echo REDIS_HOST=${REDIS_HOST} > .env",
-              "echo REDIS_PORT=6379 >> .env",
-              "echo REDIS_SSL=True >> .env",
-              "docker-compose up --build -d"
-            ]'
+            --comment "Deploy app via SSM" \
+            --parameters commands="mkdir -p /home/ubuntu/app && \
+              cd /home/ubuntu/app && \
+              echo $BASE64_ARCHIVE | base64 --decode > app.tar.gz && \
+              tar xzf app.tar.gz && \
+              echo REDIS_HOST='${REDIS_HOST}' > .env && \
+              echo REDIS_PORT=6379 >> .env && \
+              echo REDIS_SSL=True >> .env && \
+              docker-compose up --build -d" \
+                          --region eu-west-2
