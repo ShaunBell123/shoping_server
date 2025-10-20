@@ -1,7 +1,22 @@
+###########################################################
+# Terraform AWS Setup
+# Features:
+# - Private VPC with a single subnet
+# - Security groups for EC2 and Redis
+# - ElastiCache Redis cluster
+# - EC2 instance (private) with SSM access
+# - API Gateway (private) with /scrape, /login, /dashboard endpoints
+# - Private VPC endpoints for API Gateway and SSM services
+# - Outputs: Redis endpoint, EC2 ID, EC2 private IP, API Gateway ID
+###########################################################
+
 provider "aws" {
   region = "eu-west-2"
 }
 
+# ---------------------
+# AMI Data
+# ---------------------
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -104,19 +119,6 @@ resource "aws_elasticache_cluster" "redis_cluster" {
 }
 
 # ---------------------
-# SSH Key (optional)
-# ---------------------
-resource "tls_private_key" "ec2_key" {
-  algorithm = "RSA"
-  rsa_bits  = 2048
-}
-
-resource "aws_key_pair" "deploy_key" {
-  key_name   = "ec2-deploy-key"
-  public_key = tls_private_key.ec2_key.public_key_openssh
-}
-
-# ---------------------
 # IAM Role + SSM Access
 # ---------------------
 resource "aws_iam_role" "ssm_role" {
@@ -143,17 +145,16 @@ resource "aws_iam_instance_profile" "ssm_instance_profile" {
 }
 
 # ---------------------
-# EC2 Instance (private)
+# EC2 Instance (private, SSM only)
 # ---------------------
 resource "aws_instance" "app_server" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t4g.micro"
   subnet_id              = aws_subnet.private_subnet.id
   vpc_security_group_ids = [aws_security_group.private_sg.id]
-  key_name               = aws_key_pair.deploy_key.key_name
 
-  iam_instance_profile = aws_iam_instance_profile.ssm_instance_profile.name
-  associate_public_ip_address = false # stays private
+  iam_instance_profile       = aws_iam_instance_profile.ssm_instance_profile.name
+  associate_public_ip_address = false
 
   user_data = <<-EOF
               #!/bin/bash
@@ -307,11 +308,6 @@ output "ec2_id" {
 
 output "api_id" {
   value = aws_api_gateway_rest_api.shop_api.id
-}
-
-output "private_key_pem" {
-  value     = tls_private_key.ec2_key.private_key_pem
-  sensitive = true
 }
 
 output "ec2_private_ip" {
