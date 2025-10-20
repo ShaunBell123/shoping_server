@@ -4,7 +4,7 @@
 # - Private VPC with a single subnet
 # - Security groups for EC2 and Redis
 # - ElastiCache Redis cluster
-# - EC2 instance (private) with SSM access
+# - EC2 instance (private) with full SSM access
 # - API Gateway (private) with /scrape, /login, /dashboard endpoints
 # - Private VPC endpoints for API Gateway and SSM services
 # - Outputs: Redis endpoint, EC2 ID, EC2 private IP, API Gateway ID
@@ -114,7 +114,6 @@ resource "aws_elasticache_cluster" "redis_cluster" {
   port                 = 6379
   subnet_group_name    = aws_elasticache_subnet_group.private_cache_subnet_group.name
   security_group_ids   = [aws_security_group.redis_sg.id]
-
   tags = { Name = "private-redis" }
 }
 
@@ -134,9 +133,14 @@ resource "aws_iam_role" "ssm_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ssm_role_policy" {
+resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.ssm_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "elasticache_access" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonElastiCacheFullAccess"
 }
 
 resource "aws_iam_instance_profile" "ssm_instance_profile" {
@@ -160,6 +164,8 @@ resource "aws_instance" "app_server" {
               #!/bin/bash
               echo "REDIS_HOST=${aws_elasticache_cluster.redis_cluster.cache_nodes[0].address}" >> /etc/environment
               echo "REDIS_PORT=6379" >> /etc/environment
+              systemctl enable amazon-ssm-agent
+              systemctl start amazon-ssm-agent
               EOF
 
   tags = { Name = "private-ec2" }
@@ -258,7 +264,7 @@ resource "aws_api_gateway_integration" "dashboard_integration" {
 }
 
 # ---------------------
-# Private API Gateway VPC Endpoint
+# Private API Gateway + SSM Endpoints
 # ---------------------
 resource "aws_vpc_endpoint" "api_vpce" {
   vpc_id             = aws_vpc.private_vpc.id
@@ -268,9 +274,6 @@ resource "aws_vpc_endpoint" "api_vpce" {
   security_group_ids = [aws_security_group.private_sg.id]
 }
 
-# ---------------------
-# SSM VPC Endpoints (so EC2 can reach SSM privately)
-# ---------------------
 resource "aws_vpc_endpoint" "ssm" {
   vpc_id             = aws_vpc.private_vpc.id
   service_name       = "com.amazonaws.eu-west-2.ssm"
