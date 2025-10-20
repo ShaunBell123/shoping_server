@@ -162,10 +162,14 @@ resource "aws_instance" "app_server" {
 
   user_data = <<-EOF
               #!/bin/bash
+              # Install SSM agent
+              sudo snap install amazon-ssm-agent --classic
+              sudo systemctl enable amazon-ssm-agent
+              sudo systemctl start amazon-ssm-agent
+
+              # Set Redis env variables
               echo "REDIS_HOST=${aws_elasticache_cluster.redis_cluster.cache_nodes[0].address}" >> /etc/environment
               echo "REDIS_PORT=6379" >> /etc/environment
-              systemctl enable amazon-ssm-agent
-              systemctl start amazon-ssm-agent
               EOF
 
   tags = { Name = "private-ec2" }
