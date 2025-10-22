@@ -25,35 +25,27 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: terraform/main
+        working-directory: terraform/test_project
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: terraform/main
+        working-directory: terraform/test_project
 
       - name: Get Terraform outputs
         run: |
           echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
-          echo "REDIS_HOST=$(terraform output -raw redis_endpoint)" >> $GITHUB_ENV
-        working-directory: terraform/main
+        working-directory: terraform/test_project
 
       - name: Deploy via SSM using Git
         env:
           EC2_ID: ${{ env.EC2_ID }}
-          REDIS_HOST: ${{ env.REDIS_HOST }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # or your personal access token
         run: |
           aws ssm send-command \
-            --targets "Key=instanceIds,Values=${EC2_ID}" \
+            --instance-ids $EC2_ID \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy app via Git" \
-            --parameters 'commands=[
-              "mkdir -p /home/ubuntu/app",
-              "cd /home/ubuntu/app",
-              "if [ ! -d .git ]; then git clone https://'"${GITHUB_TOKEN}"'@github.com/<your-username>/<your-repo>.git .; else git pull; fi",
-              "echo REDIS_HOST='"${REDIS_HOST}"' > .env",
-              "echo REDIS_PORT=6379 >> .env",
-              "echo REDIS_SSL=True >> .env",
-              "docker-compose up --build -d"
-            ]' \
-            --region eu-west-2
+            --comment "Deploy application from Git repository" \
+            --parameters commands=[
+              "cd /home/ubuntu/app || git clone 
+
+
+              
