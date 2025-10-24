@@ -40,18 +40,30 @@ jobs:
         run: |
           for i in {1..10}; do
             if aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId=='$EC2_ID']" | grep -q "$EC2_ID"; then
+              echo "EC2 instance is ready to SSM"
               break
             fi
-            echo "Waiting for EC2 instance to be managed by SSM..."
+            echo "Waiting for EC2"
             sleep 30
           done
 
       - name: Deploy via SSM using Git
         env:
           EC2_ID: ${{ env.EC2_ID }}
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
         run: |
           aws ssm send-command \
-          --instance-ids $EC2_ID \
-          --document-name "AWS-RunShellScript" \
-          --comment "Deploy application from Git repository" \
-          --parameters '{"commands":["cd /home/ubuntu/app && if [ -d \"shoping_server\" ]; then cd shoping_server && git pull origin main; else git clone https://github.com/ShaunBell123/shoping_server.git; fi"]}'
+            --instance-ids "$EC2_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy application from Git repository" \
+            --parameters '{
+              "commands": [
+                "sudo -i -u ubuntu bash -c '\''\
+                cd /home/ubuntu/app && \
+                if [ -d \"shoping_server\" ]; then \
+                  cd shoping_server && git pull origin main; \
+                else \
+                  git clone https://'"$GITHUB_PAT"'@github.com/ShaunBell123/shoping_server.git; \
+                fi'\''"
+              ]
+            }'
