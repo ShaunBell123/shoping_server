@@ -37,6 +37,10 @@ resource "aws_instance" "ubuntu_instance" {
 
                 systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
 
+                apt install -y git
+
+                mkdir -p /home/ubuntu/app
+
               EOF
 
   tags = {
