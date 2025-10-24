@@ -40,6 +40,7 @@ resource "aws_instance" "ubuntu_instance" {
                 apt install -y git
 
                 mkdir -p /home/ubuntu/app
+                chown ubuntu:ubuntu /home/ubuntu/app
 
               EOF
 
