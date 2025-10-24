@@ -36,6 +36,16 @@ jobs:
           echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
         working-directory: terraform/test_project
 
+      - name: Wait until EC2 is managed by SSM
+        run: |
+          for i in {1..10}; do
+            if aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId=='$EC2_ID']" | grep -q "$EC2_ID"; then
+              break
+            fi
+            echo "Waiting for EC2 instance to be managed by SSM..."
+            sleep 30
+          done
+
       - name: Deploy via SSM using Git
         env:
           EC2_ID: ${{ env.EC2_ID }}
