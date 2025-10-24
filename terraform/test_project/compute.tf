@@ -36,7 +36,6 @@ resource "aws_instance" "ubuntu_instance" {
               # Install Git
               apt install -y git
 
-              # Create app directory with proper ownership
               mkdir -p /home/ubuntu/app
               chown -R ubuntu:ubuntu /home/ubuntu/app
               EOF
