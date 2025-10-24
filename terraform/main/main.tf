@@ -157,23 +157,24 @@ resource "aws_instance" "app_server" {
   subnet_id              = aws_subnet.private_subnet.id
   vpc_security_group_ids = [aws_security_group.private_sg.id]
 
-  iam_instance_profile       = aws_iam_instance_profile.ssm_instance_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.ssm_instance_profile.name
   associate_public_ip_address = false
 
   user_data = <<-EOF
               #!/bin/bash
-              # Install SSM agent
               sudo snap install amazon-ssm-agent --classic
               sudo systemctl enable amazon-ssm-agent
               sudo systemctl start amazon-ssm-agent
 
-              # Set Redis env variables
               echo "REDIS_HOST=${aws_elasticache_cluster.redis_cluster.cache_nodes[0].address}" >> /etc/environment
               echo "REDIS_PORT=6379" >> /etc/environment
               EOF
 
-  tags = { Name = "private-ec2" }
+  tags = { 
+    Name = "private-ec2" 
+  }
 }
+
 
 # ---------------------
 # API Gateway (Private)
