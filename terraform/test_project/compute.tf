@@ -28,13 +28,17 @@ resource "aws_instance" "ubuntu_instance" {
               #!/bin/bash
               set -e
 
-              # Update & install SSM agent
               apt update
               snap install amazon-ssm-agent --classic
               systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
 
-              # Install Git
               apt install -y git
+
+              apt install -y docker.io
+              systemctl enable --now docker
+              usermod -aG docker ubuntu
+
+              apt install -y docker-compose
 
               mkdir -p /home/ubuntu/app
               chown -R ubuntu:ubuntu /home/ubuntu/app
