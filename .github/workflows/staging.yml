@@ -35,7 +35,7 @@ jobs:
         run: echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
         working-directory: terraform/test_project
 
-      - name: Wait for EC2 and EBS checks
+      - name: Wait for EC2 status checks
         env:
           INSTANCE_ID: ${{ env.EC2_ID }}
         run: |
@@ -52,21 +52,15 @@ jobs:
               --query 'InstanceStatuses[0].SystemStatus.Status' \
               --output text 2>/dev/null || echo "initializing")
 
-            EBS_STATUS=$(aws ec2 describe-instance-status \
-              --instance-ids $INSTANCE_ID \
-              --query 'InstanceStatuses[0].InstanceStatus.Details[?Name==`ebs`].Status' \
-              --output text 2>/dev/null || echo "initializing")
+            echo "System=$SYSTEM_STATUS | Instance=$STATUS"
 
-            echo "System=$SYSTEM_STATUS | Instance=$STATUS | EBS=$EBS_STATUS"
-
-            if [ "$STATUS" = "ok" ] && [ "$SYSTEM_STATUS" = "ok" ] && [ "$EBS_STATUS" = "passed" ]; then
+            if [ "$STATUS" = "ok" ] && [ "$SYSTEM_STATUS" = "ok" ]; then
               echo "✅ All status checks passed."
               break
             fi
 
             sleep 15
           done
-
 
       # - name: Wait until EC2 is ready
       #   run: |
