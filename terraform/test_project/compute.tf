@@ -34,6 +34,9 @@ resource "aws_instance" "ubuntu_instance" {
 
               usermod -aG docker ubuntu
 
+              apt update
+              apt install -y docker-compose-plugin
+
               snap install amazon-ssm-agent --classic
               systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
               
@@ -44,4 +47,5 @@ resource "aws_instance" "ubuntu_instance" {
   tags = {
     Name = "ubuntu-instance"
   }
+  
 }

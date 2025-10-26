@@ -61,5 +61,5 @@ jobs:
               git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
               cd shoping_server; \
             fi; \
-            docker compose down; \
-            docker compose up -d'\"]}"
+            docker-compose down; \
+            docker-compose up -d'\"]}"
