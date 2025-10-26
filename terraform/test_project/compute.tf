@@ -28,41 +28,33 @@ resource "aws_instance" "ubuntu_instance" {
             #!/bin/bash
             set -e
 
-            echo "Waiting for network..."
-            until ping -c1 archive.ubuntu.com &>/dev/null; do
+            # Wait until HTTP works
+            echo "Waiting for network to Ubuntu archive..."
+            until curl -sfI http://archive.ubuntu.com/ubuntu/; do
               sleep 5
             done
 
-            echo "Updating system..."
-            # Retry apt update in case of temporary mirror issues
-            for i in {1..5}; do
-              apt update && break || sleep 5
-            done
+            # Update and install packages
+            apt update
+            apt install -y docker.io docker-compose-plugin git curl
 
-            echo "Installing required packages..."
-            apt install -y docker.io git curl docker-compose-plugin
-
-            echo "Starting Docker..."
+            # Start Docker and enable it
             systemctl enable --now docker
 
-            echo "Add ubuntu user to docker group..."
+            # Add ubuntu user to docker group
             usermod -aG docker ubuntu
 
-            # Ensure Docker Compose can be run by ubuntu user
+            # Ensure ubuntu can use Docker Compose
             chown -R ubuntu:ubuntu /usr/local/lib/docker/cli-plugins 2>/dev/null || true
-            mkdir -p /home/ubuntu/.docker
-            chown -R ubuntu:ubuntu /home/ubuntu/.docker
 
-            echo "Installing and starting SSM agent..."
+            # Install and start SSM agent
             snap install amazon-ssm-agent --classic
             systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
 
-            echo "Creating app directory..."
+            # Create app directory
             mkdir -p /home/ubuntu/app
             chown -R ubuntu:ubuntu /home/ubuntu/app
             chmod 755 /home/ubuntu/app
-
-            echo "User data finished."
             EOF
 
   tags = {
