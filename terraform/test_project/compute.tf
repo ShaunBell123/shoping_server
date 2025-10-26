@@ -28,24 +28,35 @@ resource "aws_instance" "ubuntu_instance" {
               #!/bin/bash
               set -e
 
+              # Update system and install packages
               apt update
               apt install -y docker.io git curl
+
+              # Start Docker
               systemctl enable --now docker
 
+              # Add ubuntu user to docker group
               usermod -aG docker ubuntu
 
-              apt update
+              # Install Docker Compose plugin via package manager
               apt install -y docker-compose-plugin
 
+              # Ensure Docker Compose can be run by ubuntu user
+              chown -R ubuntu:ubuntu /usr/local/lib/docker/cli-plugins 2>/dev/null || true
+
+              # Install and start SSM agent
               snap install amazon-ssm-agent --classic
               systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
-              
+
+              # Create app directory and set ownership
               mkdir -p /home/ubuntu/app
               chown -R ubuntu:ubuntu /home/ubuntu/app
+
+              # Ensure the app directory is writable by ubuntu user
+              chmod 755 /home/ubuntu/app
               EOF
 
   tags = {
     Name = "ubuntu-instance"
   }
-  
 }
