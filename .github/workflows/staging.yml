@@ -35,15 +35,19 @@ jobs:
         run: echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
         working-directory: terraform/test_project
 
-      - name: Wait until EC2 is managed by SSM
+      - name: Wait until EC2 is ready
         run: |
-          for i in {1..10}; do
-            if aws ssm describe-instance-information --query "InstanceInformationList[?InstanceId=='$EC2_ID']" | grep -q "$EC2_ID"; then
-              echo "EC2 instance is ready to SSM"
+          for i in {1..20}; do
+            if aws ssm send-command \
+                --instance-ids "$EC2_ID" \
+                --document-name "AWS-RunShellScript" \
+                --parameters "{\"commands\":[\"[ -d /home/ubuntu/app ]\"]}" \
+                --query "Command.CommandId" --output text | grep -q ".*"; then
+              echo "EC2 is ready"
               break
             fi
-            echo "Waiting for EC2 to be ready..."
-            sleep 30
+            echo "Waiting for EC2 to finish user_data..."
+            sleep 15
           done
 
       - name: Deploy via SSM using Git
@@ -61,5 +65,5 @@ jobs:
               git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
               cd shoping_server; \
             fi; \
-            docker-compose down; \
-            docker-compose up -d'\"]}"
+            docker compose down; \
+            docker compose up -d'\"]}"
