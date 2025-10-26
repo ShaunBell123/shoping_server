@@ -35,32 +35,34 @@ jobs:
         run: echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
         working-directory: terraform/test_project
 
-      - name: Wait for EC2 status checks
+      - name: Wait for SSM + Docker ready
         env:
-          INSTANCE_ID: ${{ env.EC2_ID }}
+          EC2_ID: ${{ env.EC2_ID }}
         run: |
-          echo "Waiting for EC2 instance..."
-
+          echo "Waiting for SSM agent and Docker to be ready..."
           while true; do
-            STATUS=$(aws ec2 describe-instance-status \
-              --instance-ids $INSTANCE_ID \
-              --query 'InstanceStatuses[0].InstanceStatus.Status' \
-              --output text 2>/dev/null || echo "initializing")
+            STATUS=$(aws ssm describe-instance-information \
+              --filters "Key=InstanceIds,Values=$EC2_ID" \
+              --query 'InstanceInformationList[0].PingStatus' \
+              --output text 2>/dev/null || echo "offline")
 
-            SYSTEM_STATUS=$(aws ec2 describe-instance-status \
-              --instance-ids $INSTANCE_ID \
-              --query 'InstanceStatuses[0].SystemStatus.Status' \
-              --output text 2>/dev/null || echo "initializing")
-
-            echo "System=$SYSTEM_STATUS | Instance=$STATUS"
-
-            if [ "$STATUS" = "ok" ] && [ "$SYSTEM_STATUS" = "ok" ]; then
-              echo "passed"
+            if [ "$STATUS" = "Online" ]; then
+              echo "✅ SSM agent is online."
               break
             fi
 
-            sleep 15
+            echo "SSM not ready yet ($STATUS)..."
+            sleep 10
           done
+
+          # Optional: wait for Docker specifically
+          aws ssm send-command \
+            --instance-ids "$EC2_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Wait for Docker" \
+            --parameters '{"commands":["until command -v docker >/dev/null 2>&1; do echo waiting for docker...; sleep 10; done; echo docker ready."]}' \
+            --output text
+
 
       - name: Deploy via SSM using Git
         env:
