@@ -35,49 +35,68 @@ jobs:
         run: echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
         working-directory: terraform/test_project
 
-      - name: Wait for SSM + Docker ready
+      - name: Wait for EC2 and EBS checks
         env:
-          EC2_ID: ${{ env.EC2_ID }}
+          INSTANCE_ID: ${{ env.EC2_ID }}
         run: |
-          echo "Waiting for SSM agent and Docker to be ready..."
-          while true; do
-            STATUS=$(aws ssm describe-instance-information \
-              --filters "Key=InstanceIds,Values=$EC2_ID" \
-              --query 'InstanceInformationList[0].PingStatus' \
-              --output text 2>/dev/null || echo "offline")
+          echo "Waiting for EC2 instance $INSTANCE_ID to pass all status checks..."
 
-            if [ "$STATUS" = "Online" ]; then
-              echo "✅ SSM agent is online."
+          while true; do
+            STATUS=$(aws ec2 describe-instance-status \
+              --instance-ids $INSTANCE_ID \
+              --query 'InstanceStatuses[0].InstanceStatus.Status' \
+              --output text 2>/dev/null || echo "initializing")
+
+            SYSTEM_STATUS=$(aws ec2 describe-instance-status \
+              --instance-ids $INSTANCE_ID \
+              --query 'InstanceStatuses[0].SystemStatus.Status' \
+              --output text 2>/dev/null || echo "initializing")
+
+            EBS_STATUS=$(aws ec2 describe-instance-status \
+              --instance-ids $INSTANCE_ID \
+              --query 'InstanceStatuses[0].InstanceStatus.Details[?Name==`ebs`].Status' \
+              --output text 2>/dev/null || echo "initializing")
+
+            echo "System=$SYSTEM_STATUS | Instance=$STATUS | EBS=$EBS_STATUS"
+
+            if [ "$STATUS" = "ok" ] && [ "$SYSTEM_STATUS" = "ok" ] && [ "$EBS_STATUS" = "passed" ]; then
+              echo "✅ All status checks passed."
               break
             fi
 
-            echo "SSM not ready yet ($STATUS)..."
-            sleep 10
+            sleep 15
           done
 
-          # Optional: wait for Docker specifically
-          aws ssm send-command \
-            --instance-ids "$EC2_ID" \
-            --document-name "AWS-RunShellScript" \
-            --comment "Wait for Docker" \
-            --parameters '{"commands":["until command -v docker >/dev/null 2>&1; do echo waiting for docker...; sleep 10; done; echo docker ready."]}' \
-            --output text
 
+      # - name: Wait until EC2 is ready
+      #   run: |
+      #     for i in {1..20}; do
+      #       if aws ssm send-command \
+      #           --instance-ids "$EC2_ID" \
+      #           --document-name "AWS-RunShellScript" \
+      #           --parameters "{\"commands\":[\"[ -d /home/ubuntu/app ]\"]}" \
+      #           --query "Command.CommandId" --output text | grep -q ".*"; then
+      #         echo "EC2 is ready"
+      #         break
+      #       fi
+      #       echo "Waiting for EC2 to finish user_data..."
+      #       sleep 15
+      #     done
 
-      - name: Deploy via SSM using Git
-        env:
-          EC2_ID: ${{ env.EC2_ID }}
-          MY_GITHUB_PAT: ${{ secrets.MY_GITHUB_PAT }}
-        run: |
-          aws ssm send-command \
-            --instance-ids "$EC2_ID" \
-            --document-name "AWS-RunShellScript" \
-            --parameters "{\"commands\": [\"sudo -i -u ubuntu bash -c 'cd /home/ubuntu/app && \
-            if [ -d shoping_server ]; then \
-              cd shoping_server && git pull origin main; \
-            else \
-              git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
-              cd shoping_server; \
-            fi; \
-            docker compose down; \
-            docker compose up -d'\"]}"
+      # - name: Deploy via SSM using Git
+      #   env:
+      #     EC2_ID: ${{ env.EC2_ID }}
+      #     MY_GITHUB_PAT: ${{ secrets.MY_GITHUB_PAT }}
+      #   run: |
+      #     aws ssm send-command \
+      #       --instance-ids "$EC2_ID" \
+      #       --document-name "AWS-RunShellScript" \
+      #       --parameters "{\"commands\": [\"sudo -i -u ubuntu bash -c 'cd /home/ubuntu/app && \
+      #       if [ -d shoping_server ]; then \
+      #         cd shoping_server && git pull origin main; \
+      #       else \
+      #         git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
+      #         cd shoping_server; \
+      #       fi; \
+      #       docker compose down; \
+      #       docker compose up -d'\"]}"
