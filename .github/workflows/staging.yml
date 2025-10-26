@@ -35,35 +35,35 @@ jobs:
         run: echo "EC2_ID=$(terraform output -raw ec2_id)" >> $GITHUB_ENV
         working-directory: terraform/test_project
 
-      - name: Wait until EC2 is ready
-        run: |
-          for i in {1..20}; do
-            if aws ssm send-command \
-                --instance-ids "$EC2_ID" \
-                --document-name "AWS-RunShellScript" \
-                --parameters "{\"commands\":[\"[ -d /home/ubuntu/app ]\"]}" \
-                --query "Command.CommandId" --output text | grep -q ".*"; then
-              echo "EC2 is ready"
-              break
-            fi
-            echo "Waiting for EC2 to finish user_data..."
-            sleep 15
-          done
+      # - name: Wait until EC2 is ready
+      #   run: |
+      #     for i in {1..20}; do
+      #       if aws ssm send-command \
+      #           --instance-ids "$EC2_ID" \
+      #           --document-name "AWS-RunShellScript" \
+      #           --parameters "{\"commands\":[\"[ -d /home/ubuntu/app ]\"]}" \
+      #           --query "Command.CommandId" --output text | grep -q ".*"; then
+      #         echo "EC2 is ready"
+      #         break
+      #       fi
+      #       echo "Waiting for EC2 to finish user_data..."
+      #       sleep 15
+      #     done
 
-      - name: Deploy via SSM using Git
-        env:
-          EC2_ID: ${{ env.EC2_ID }}
-          MY_GITHUB_PAT: ${{ secrets.MY_GITHUB_PAT }}
-        run: |
-          aws ssm send-command \
-            --instance-ids "$EC2_ID" \
-            --document-name "AWS-RunShellScript" \
-            --parameters "{\"commands\": [\"sudo -i -u ubuntu bash -c 'cd /home/ubuntu/app && \
-            if [ -d shoping_server ]; then \
-              cd shoping_server && git pull origin main; \
-            else \
-              git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
-              cd shoping_server; \
-            fi; \
-            docker compose down; \
-            docker compose up -d'\"]}"
+      # - name: Deploy via SSM using Git
+      #   env:
+      #     EC2_ID: ${{ env.EC2_ID }}
+      #     MY_GITHUB_PAT: ${{ secrets.MY_GITHUB_PAT }}
+      #   run: |
+      #     aws ssm send-command \
+      #       --instance-ids "$EC2_ID" \
+      #       --document-name "AWS-RunShellScript" \
+      #       --parameters "{\"commands\": [\"sudo -i -u ubuntu bash -c 'cd /home/ubuntu/app && \
+      #       if [ -d shoping_server ]; then \
+      #         cd shoping_server && git pull origin main; \
+      #       else \
+      #         git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
+      #         cd shoping_server; \
+      #       fi; \
+      #       docker compose down; \
+      #       docker compose up -d'\"]}"
