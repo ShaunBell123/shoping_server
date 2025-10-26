@@ -25,36 +25,45 @@ resource "aws_instance" "ubuntu_instance" {
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
 
   user_data = <<-EOF
-              #!/bin/bash
-              set -e
+            #!/bin/bash
+            set -e
 
-              # Update system and install packages
-              apt update
-              apt install -y docker.io git curl
+            echo "Waiting for network..."
+            until ping -c1 archive.ubuntu.com &>/dev/null; do
+              sleep 5
+            done
 
-              # Start Docker
-              systemctl enable --now docker
+            echo "Updating system..."
+            # Retry apt update in case of temporary mirror issues
+            for i in {1..5}; do
+              apt update && break || sleep 5
+            done
 
-              # Add ubuntu user to docker group
-              usermod -aG docker ubuntu
+            echo "Installing required packages..."
+            apt install -y docker.io git curl docker-compose-plugin
 
-              # Install Docker Compose plugin via package manager
-              apt install -y docker-compose-plugin
+            echo "Starting Docker..."
+            systemctl enable --now docker
 
-              # Ensure Docker Compose can be run by ubuntu user
-              chown -R ubuntu:ubuntu /usr/local/lib/docker/cli-plugins 2>/dev/null || true
+            echo "Add ubuntu user to docker group..."
+            usermod -aG docker ubuntu
 
-              # Install and start SSM agent
-              snap install amazon-ssm-agent --classic
-              systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
+            # Ensure Docker Compose can be run by ubuntu user
+            chown -R ubuntu:ubuntu /usr/local/lib/docker/cli-plugins 2>/dev/null || true
+            mkdir -p /home/ubuntu/.docker
+            chown -R ubuntu:ubuntu /home/ubuntu/.docker
 
-              # Create app directory and set ownership
-              mkdir -p /home/ubuntu/app
-              chown -R ubuntu:ubuntu /home/ubuntu/app
+            echo "Installing and starting SSM agent..."
+            snap install amazon-ssm-agent --classic
+            systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
 
-              # Ensure the app directory is writable by ubuntu user
-              chmod 755 /home/ubuntu/app
-              EOF
+            echo "Creating app directory..."
+            mkdir -p /home/ubuntu/app
+            chown -R ubuntu:ubuntu /home/ubuntu/app
+            chmod 755 /home/ubuntu/app
+
+            echo "User data finished."
+            EOF
 
   tags = {
     Name = "ubuntu-instance"
