@@ -52,14 +52,9 @@ jobs:
               --query 'InstanceStatuses[0].SystemStatus.Status' \
               --output text 2>/dev/null || echo "initializing")
 
-            EBS_STATUS=$(aws ec2 describe-instance-status \
-              --instance-ids $INSTANCE_ID \
-              --query 'InstanceStatuses[0].InstanceStatus.Details[?Name==`ebs`].Status' \
-              --output text 2>/dev/null || echo "initializing")
+            echo "System=$SYSTEM_STATUS | Instance=$STATUS"
 
-            echo "System=$SYSTEM_STATUS | Instance=$STATUS | EBS=$EBS_STATUS"
-
-            if [ "$STATUS" = "ok" ] && [ "$SYSTEM_STATUS" = "ok" ] && [ "$EBS_STATUS" = "passed" ]; then
+            if [ "$STATUS" = "ok" ] && [ "$SYSTEM_STATUS" = "ok" ]; then
               echo "All status checks passed."
               break
             fi
@@ -74,31 +69,13 @@ jobs:
         run: |
           aws ssm send-command \
             --instance-ids "$EC2_ID" \
-            --parameters "{\"commands\": [\"sudo -i -u ubuntu bash -c 'cd /home/ubuntu/app && \
-            if [ -d shoping_server ]; then \
-              cd shoping_server && git pull origin main; \
-            else \
-              git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git; \
-              cd shoping_server; \
-            fi; \
-            docker compose down; \
-            docker compose up -d'\"]}"
-
-
-      - name: Deploy via SSM using Git
-        env:
-          EC2_ID: ${{ env.EC2_ID }}
-          MY_GITHUB_PAT: ${{ secrets.MY_GITHUB_PAT }}
-        run: |
-          aws ssm send-command \
-            --instance-ids "$EC2_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters "{\"commands\": [
               \"#!/bin/bash\",
 
               \"sudo apt-get update -y\",
               \"sudo apt-get install -y docker.io docker-compose git\",
-              
+
               \"sudo systemctl enable docker\",
               \"sudo systemctl start docker\",
 
@@ -108,5 +85,8 @@ jobs:
               \"  git clone https://${MY_GITHUB_PAT}@github.com/ShaunBell123/shoping_server.git\",
               \"else\",
               \"  cd shoping_server && git pull origin main\",
-              \"fi\"
+              \"fi\",
+
+              \"cd /home/ubuntu/shoping_server\",
+              \"sudo docker compose up -d\"
             ]}"
