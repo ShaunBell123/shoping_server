@@ -24,30 +24,30 @@ resource "aws_instance" "ubuntu_instance" {
 
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm_profile.name
 
-  user_data = <<-EOF
-            #!/bin/bash
-            set -e
+  # user_data = <<-EOF
+  #           #!/bin/bash
+  #           set -e
 
-            echo "Waiting for network..."
-            until ping -c1 archive.ubuntu.com &>/dev/null; do
-              sleep 5
-            done
+  #           echo "Waiting for network..."
+  #           until ping -c1 archive.ubuntu.com &>/dev/null; do
+  #             sleep 5
+  #           done
 
-            apt update
-            apt upgrade -y
-            apt install -y docker.io git curl docker-compose
+  #           apt update
+  #           apt upgrade -y
+  #           apt install -y docker.io git curl docker-compose
 
-            systemctl enable --now docker
-            usermod -aG docker ubuntu
+  #           systemctl enable --now docker
+  #           usermod -aG docker ubuntu
 
-            snap install amazon-ssm-agent --classic || apt install -y amazon-ssm-agent
-            systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
+  #           snap install amazon-ssm-agent --classic || apt install -y amazon-ssm-agent
+  #           systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
 
-            mkdir -p /home/ubuntu/app
-            chown -R ubuntu:ubuntu /home/ubuntu/app
-            chmod 755 /home/ubuntu/app
+  #           mkdir -p /home/ubuntu/app
+  #           chown -R ubuntu:ubuntu /home/ubuntu/app
+  #           chmod 755 /home/ubuntu/app
 
-            EOF
+  #           EOF
 
   tags = {
     Name = "ubuntu-instance"
