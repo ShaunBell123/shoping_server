@@ -13,6 +13,9 @@ __pycache__/
 venv/
 env/
 
+# docker
+docker-compose.override.yml
+
 # Java
 *.class
 target/

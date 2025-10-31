@@ -28,7 +28,8 @@ public class ScrapeController {
         
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-        return ResponseEntity.status(response.getStatusCode())
+        return ResponseEntity
+        .status(response.getStatusCode())
         .body(response.getBody());
         
     }

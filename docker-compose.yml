@@ -22,8 +22,6 @@ services:
     container_name: python-app
     volumes:
       - ./python:/app
-    ports:
-      - "5001:8000"
     environment:
       - REDIS_HOST=clustercfg.demo-cluster.faysnd.euw2.cache.amazonaws.com
       - REDIS_PORT=6379

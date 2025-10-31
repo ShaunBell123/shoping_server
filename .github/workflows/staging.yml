@@ -66,12 +66,23 @@ jobs:
         env:
           EC2_ID: ${{ env.EC2_ID }}
           MY_GITHUB_PAT: ${{ secrets.MY_GITHUB_PAT }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+          AUTH0_REDIRECT_URI: ${{ secrets.AUTH0_REDIRECT_URI }}
+          AUTH0_ISSUER_URI: ${{ secrets.AUTH0_ISSUER_URI }}
+          SPRING_PORT: ${{ secrets.SPRING_PORT }}
         run: |
           aws ssm send-command \
             --instance-ids "$EC2_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters "{\"commands\": [
               \"#!/bin/bash\",
+
+              \"export AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}\",
+              \"export AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}\",
+              \"export AUTH0_REDIRECT_URI=${AUTH0_REDIRECT_URI}\",
+              \"export AUTH0_ISSUER_URI=${AUTH0_ISSUER_URI}\",
+              \"export SPRING_PORT=${SPRING_PORT}\",
 
               \"sudo apt-get update -y\",
               \"sudo apt-get install -y docker.io docker-compose git\",
@@ -88,5 +99,5 @@ jobs:
               \"fi\",
 
               \"cd /home/ubuntu/shoping_server\",
-              \"sudo docker compose up -d\"
+              \"sudo docker-compose up -d\"
             ]}"
