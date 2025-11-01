@@ -43,13 +43,19 @@ Currently, this will go through the first shop page and find products with names
 
 ## Future Improvements
 
-In the future, I hope to add more filters, such as:
+add:
+- Gateway
+- ElastiCache
+- persistent storage(probably RDS for PostgreSQL)
 
+In the future, I hope to add more filters, such as:
 - Lowest cost per unit
 - Size requirements
 - Brand preferences
 
-change the /scrape
+/scrape Endpoint Improvements
+- Convert the /scrape endpoint to a WebSocket, which is better suited for long-running tasks.
+- Implement a queue with worker processing to handle multiple scrape requests efficiently and allow recovery of long-running tasks if needed.
 
 ## Authentication
 
