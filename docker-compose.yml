@@ -11,7 +11,6 @@ services:
     environment:
       - AUTH0_CLIENT_ID=${AUTH0_CLIENT_ID}
       - AUTH0_CLIENT_SECRET=${AUTH0_CLIENT_SECRET}
-      - AUTH0_REDIRECT_URI=${AUTH0_REDIRECT_URI}
       - AUTH0_ISSUER_URI=${AUTH0_ISSUER_URI}
       - SPRING_PORT=${SPRING_PORT}
 
@@ -21,7 +20,7 @@ services:
       dockerfile: Dockerfile
     container_name: python-app
     volumes:
-      - ./python:/app
+      - ./python/app:/app
     environment:
       - REDIS_HOST=clustercfg.demo-cluster.faysnd.euw2.cache.amazonaws.com
       - REDIS_PORT=6379

@@ -1,33 +1,35 @@
-# Gradle
-.gradle
-build/
-
-# Python
+# Python caches
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.pytest_cache/
-.venv/
-env/
-venv/
 
-# Java
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Gradle / Java
+.gradle/
+build/
 *.class
 target/
 
 # Terraform
+.terraform/
 *.tfstate
 *.tfstate.backup
-.terraform/
 .terraform.lock.hcl
-crash.log
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
+*.tfplan
 
-# IDE / Editor
+# Docker / overrides
+docker-compose.override.yml
+
+# Environment / secret files
+.env
+
+# IDE / editor files
 .idea/
 .vscode/
 *.iml
@@ -35,11 +37,3 @@ override.tf.json
 # OS files
 .DS_Store
 Thumbs.db
-
-# Environment files
-.env
-
-# Git
-.git
-.gitignore
-
