@@ -1,14 +1,13 @@
 # 🧩 Project Overview
 
-This project uses Java, Gradle, Spring Boot, Python, FastAPI, Git, Docker, Auth0, EC2, and GitHub Actions.
+This project uses Java, Gradle, Spring Boot, Python, FastAPI, Git, Docker, Auth0, Terrifrom, EC2, and GitHub Actions.
 
-My goal at the moment is to get the EC2 instance working properly.
-After that, I plan to add an AWS Gateway and ElastiCache.
+My goal at the moment is to add an AWS Gateway and ElastiCache.
 This will allow me to make public requests to my network and reduce the amount of compute resources the EC2 instance uses.
 
 ## 🧠 Current Setup
 
-When running locally, you can send a request like this:
+When running, you can send a request like this (after authenticating):
 
 Endpoint:
 ```
@@ -97,3 +96,5 @@ AWS Gateway (planned)
 AWS ElastiCache (planned)
 
 GitHub Actions
+
+Terrifrom 
