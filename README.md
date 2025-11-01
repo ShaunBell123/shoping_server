@@ -13,31 +13,30 @@ When running locally, you can send a request like this:
 Endpoint:
 ```
 http://localhost:8080/scrape
-
 ```
 
 Request:
 ```json
 {
-"shops": [
-{
-"shop_name": "asda",
-"products": [
-{ "name": "milk" },
-{ "name": "bread" }
-]
-},
-{
-"shop_name": "tesco",
-"products": [
-{ "name": "milk" },
-{ "name": "bread" },
-{ "name": "eggs" },
-{ "name": "diet coke" },
-{ "name": "chicken" }
-]
-}
-]
+  "shops": [
+    {
+      "shop_name": "asda",
+      "products": [
+        { "name": "milk" },
+        { "name": "bread" }
+      ]
+    },
+    {
+      "shop_name": "tesco",
+      "products": [
+        { "name": "milk" },
+        { "name": "bread" },
+        { "name": "eggs" },
+        { "name": "diet coke" },
+        { "name": "chicken" }
+      ]
+    }
+  ]
 }
 ```
 
@@ -59,19 +58,16 @@ I also have other endpoints for authentication:
 
 ```
 http://localhost:8080/
-
 ```
 Opens a page where the user can click a button to log in.
 
 ```
 http://localhost:8080/login
-
 ```
 Opens the Auth0 login page, where the user can log in using Google.
 
 ```
 http://localhost:8080/dashboard
-
 ```
 Shows the user their email and username, along with a button that triggers the scrape endpoint (http://localhost:8080/scrape).
 
