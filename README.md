@@ -53,17 +53,15 @@ Brand preferences
 
 ## 🔐 Authentication
 
-I also have other endpoints for authentication:
-
+- I have a endpoints for authentication:
 ```
 http://localhost:8080/
 ```
-Opens a page where the user can click a button to log in.
-
+- Opens a page where the user can click a button to log in:
 ```
 http://localhost:8080/login
 ```
-Opens the Auth0 login page, where the user can log in using Google.
+- Opens the Auth0 login page, where the user can login using Google and Github:
 
 ```
 http://localhost:8080/dashboard
@@ -74,27 +72,3 @@ Shows the user their email and username, along with a button that triggers the s
 
 If someone uses this, do not abuse public websites, as you are using someone else’s resources.
 Try to use mocked data to simulate the effects of the services instead.
-
-## 🛠️ Technologies
-
-Java / Spring Boot
-
-Gradle
-
-Python / FastAPI
-
-Git / GitHub
-
-Docker
-
-Auth0
-
-AWS EC2
-
-AWS Gateway (planned)
-
-AWS ElastiCache (planned)
-
-GitHub Actions
-
-Terrifrom 
