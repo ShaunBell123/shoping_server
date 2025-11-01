@@ -1,11 +1,11 @@
-# 🧩 Project Overview
+# Project Overview
 
 This project uses Java, Gradle, Spring Boot, Python, FastAPI, Git, Docker, Auth0, Terrifrom, EC2, and GitHub Actions.
 
 My goal at the moment is to add an AWS Gateway and ElastiCache.
 This will allow me to make public requests to my network and reduce the amount of compute resources the EC2 instance uses.
 
-## 🧠 Current Setup
+## Current Setup
 
 When running, you can send a request like this (after authenticating):
 
@@ -41,17 +41,17 @@ Request:
 
 Currently, this will go through the first shop page and find products with names closely matching the provided string.
 
-## 🔮 Future Improvements
+## Future Improvements
 
 In the future, I hope to add more filters, such as:
 
-Lowest cost per unit
+- Lowest cost per unit
+- Size requirements
+- Brand preferences
 
-Size requirements
+change the /scrape
 
-Brand preferences
-
-## 🔐 Authentication
+## Authentication
 
 - I have a endpoints for authentication:
 ```
