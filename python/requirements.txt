@@ -4,4 +4,3 @@ beautifulsoup4
 selenium
 requests
 redis==6.4.0
-pandas

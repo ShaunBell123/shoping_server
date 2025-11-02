@@ -1,6 +1,8 @@
 # Project Overview
 
-This project uses Java, Gradle, Spring Boot, Python, FastAPI, Git, Docker, Auth0, Terrifrom, EC2, and GitHub Actions.
+![AWS Resources Diagram](resorces/digrams/AWS_resorces.png)
+
+This project uses Java, Gradle, Spring Boot, Python, FastAPI, Git, Docker, Auth0, Terrifrom, EC2, S3, and GitHub Actions.
 
 My goal at the moment is to add an AWS Gateway and ElastiCache.
 This will allow me to make public requests to my network and reduce the amount of compute resources the EC2 instance uses.

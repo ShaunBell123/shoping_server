@@ -25,8 +25,6 @@ resource "aws_iam_instance_profile" "ec2_ssm_profile" {
   role = aws_iam_role.ec2_ssm_role.name
 }
 
-# Security Group allowing SSM and HTTP access
-
 resource "aws_security_group" "ssm_http_sg" {
   name        = "ssm-http-security-group"
   description = "Allow HTTP access from the VPC"
