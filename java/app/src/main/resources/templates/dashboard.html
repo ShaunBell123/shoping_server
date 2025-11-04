@@ -1,11 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
-
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <style>
         body {
@@ -42,42 +39,58 @@
             color: white;
             font-size: 16px;
         }
+        pre {
+            text-align: left;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>Welcome, <span th:text="${name}">User</span>!</h1>
-        <p>Your email: <span th:text="${email}">example@email.com</span></p>
+        <h1 id="welcomeMessage">Welcome, User!</h1>
+        <p>Your email: <span id="email">example@email.com</span></p>
         <p><a href="/logout">Logout</a></p>
-        
+
         <button id="scrapeBtn">Run Scrape</button>
-        <pre id="responseOutput" style="margin-top: 15px; text-align:left;"></pre>
+        <pre id="responseOutput"></pre>
     </div>
 
     <script>
+        // Fetch user info from backend API
+        async function loadUser() {
+            try {
+                const response = await fetch('/api/user', {
+                    credentials: 'include' // send cookies/session
+                });
+                const data = await response.json();
+
+                document.getElementById('welcomeMessage').textContent = `Welcome, ${data.name}!`;
+                document.getElementById('email').textContent = data.email;
+            } catch (err) {
+                console.error('Failed to load user info', err);
+            }
+        }
+
+        // Handle the /scrape button
         document.getElementById("scrapeBtn").addEventListener("click", async () => {
             const payload = {
-                "shops": [
+                shops: [
                     {
-                        "shop_name": "tesco",
-                        "products": [
-                            { "name": "milk" },
-                            { "name": "bread" },
-                            { "name": "eggs" }
+                        shop_name: "tesco",
+                        products: [
+                            { name: "milk" },
+                            { name: "bread" },
+                            { name: "eggs" }
                         ]
                     }
                 ]
             };
 
             try {
-                const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-                const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
                 const response = await fetch("/scrape", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
-                        [header]: token
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify(payload),
                     credentials: "same-origin"
@@ -85,11 +98,13 @@
 
                 const data = await response.json();
                 document.getElementById("responseOutput").textContent = JSON.stringify(data, null, 2);
-
             } catch (err) {
                 document.getElementById("responseOutput").textContent = "Error: " + err;
             }
         });
+
+        // Load user info when page loads
+        loadUser();
     </script>
 </body>
 </html>
