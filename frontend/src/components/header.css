@@ -1,0 +1,45 @@
+header {
+  background: #1f1f23;
+  width: 100%;
+  justify-content: center
+}
+
+.nav-container {
+    color: white;
+    display: flex;
+    list-style: none;
+    width: 100%;
+    align-items: center;
+}
+
+.nav-center {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.button-mid {
+    color: white;
+    padding: 10px;
+    display: inline-block;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 16px;
+    transition-duration: 0.5s;
+}
+
+.button-mid:hover {
+    background-color: #0d0d11;
+}
+
+.signin-login {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+    position: absolute;
+    right: 20px;
+}
+
+
