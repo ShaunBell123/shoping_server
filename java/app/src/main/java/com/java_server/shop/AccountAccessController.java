@@ -15,11 +15,6 @@ public class AccountAccessController {
         return "index";
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "redirect:/oauth2/authorization/auth0";
-    }
-
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
         model.addAttribute("name", principal.getAttribute("name"));
